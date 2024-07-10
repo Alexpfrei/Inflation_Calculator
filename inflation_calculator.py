@@ -14,7 +14,7 @@ data = pd.read_csv('May2020_Full_City.csv')
 data['Date'] = pd.to_datetime(data['Date'], errors='coerce')
 
 def get_may_data(year):
-    """Filter the dataset for May of a specific year."""
+    """Filter the dataset for May of a specific year and drop rows with NaN values."""
     return data[(data['Date'].dt.year == year) & (data['Date'].dt.month == 5)]
 
 def calculate_percentage_change(old_value, new_value):
@@ -62,7 +62,7 @@ def calculate_inflation(selected_items, amounts, base_year, comparison_date):
 
 # Streamlit App
 st.title('Personal Inflation Calculator')
-st.write("Devoloped by Alexander Frei")
+st.write("Developed by Alexander Frei")
 
 # Select Base Year
 base_year = st.selectbox('Select Base Year', range(2014, 2024))
@@ -72,9 +72,12 @@ latest_date = data['Date'].max()
 latest_year = latest_date.year if latest_date is not pd.NaT else 2024  # Default to 2024 if date parsing fails
 latest_date = f"{latest_year}-05-01"
 
+# Filter items based on the presence of data for the selected base year
+base_year_data = get_may_data(base_year)
+available_items = base_year_data.dropna(axis=1).columns[1:]  # Drop columns with NaN values and exclude the 'Date' column
+
 # List of Items
-items = data.columns[1:]
-selected_items = st.multiselect('Select Items', items)
+selected_items = st.multiselect('Select Items', available_items)
 
 # Input Amounts
 amounts = []
@@ -102,6 +105,3 @@ if st.button('Calculate Inflation'):
             st.write(f" - May {base_year} Cost: ${values['base_year_cost']:.2f}")
             st.write(f" - May {latest_year} Cost: ${values['comparison_year_cost']:.2f}")
             st.write("---")
-    
-    
-
