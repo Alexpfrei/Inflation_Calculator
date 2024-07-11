@@ -6,6 +6,7 @@ Created on Wed Jul 10 12:13:24 2024
 """
 import streamlit as st
 import pandas as pd
+import altair as alt
 
 # Load the dataset
 data = pd.read_csv('May2020_Full_City.csv')
@@ -60,6 +61,36 @@ def calculate_inflation(selected_items, amounts, base_year, comparison_date):
     
     return inflation_data
 
+def plot_total_basket_cost(selected_items, amounts):
+    """Plot the total basket cost of selected items over the years using Altair."""
+    # Filter the data for selected items and drop rows with NaN values
+    item_data = data[['Date'] + list(selected_items)].dropna()
+    
+    # Calculate the total cost of the basket for each month
+    item_data['TotalCost'] = 0
+    for item, amount in zip(selected_items, amounts):
+        item_data['TotalCost'] += item_data[item] * amount
+    
+    # Group by month and sum the total cost
+    item_data = item_data.groupby(item_data['Date'].dt.to_period('M')).sum(numeric_only=True)
+    item_data.index = item_data.index.to_timestamp()
+    
+    # Create a DataFrame for the total cost over time
+    total_cost_df = item_data[['TotalCost']].reset_index()
+    
+    # Plot the total basket cost over time using Altair
+    chart = alt.Chart(total_cost_df).mark_line(point=True).encode(
+        x='Date:T',
+        y=alt.Y('TotalCost:Q', title='Total Cost', scale=alt.Scale(zero=False), axis=alt.Axis(format='$,.2f')),
+        tooltip=[alt.Tooltip('Date:T', title='Date'), alt.Tooltip('TotalCost:Q', title='Total Cost', format='$,.2f')]
+    ).properties(
+        title='Total Cost of Selected Basket Over Time',
+        width=800,
+        height=400
+    )
+    
+    st.altair_chart(chart)
+
 # Streamlit App
 st.title('Personal Inflation Calculator')
 st.write("Developed by Alexander Frei")
@@ -86,6 +117,7 @@ for item in selected_items:
     amounts.append(amount)
 
 if st.button('Calculate Inflation'):
+    # Display the summary
     inflation_data = calculate_inflation(selected_items, amounts, base_year, latest_date)
     
     st.markdown("### Summary")
@@ -94,6 +126,11 @@ if st.button('Calculate Inflation'):
     st.write(f"**Cost Difference:** ${inflation_data['cost_difference']:.2f}")
     st.write(f"**Percentage Change:** {inflation_data['percentage_change']:.2f}%")
     
+    # Plot the total basket cost over time
+    st.markdown("### Total Cost of Selected Basket Over Time")
+    plot_total_basket_cost(selected_items, amounts)
+    
+    # Display individual items
     st.write('### Individual Items:')
     
     for item, values in inflation_data.items():
