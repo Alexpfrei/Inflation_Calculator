@@ -78,11 +78,11 @@ def plot_total_basket_cost(selected_items, amounts):
     # Create a DataFrame for the total cost over time
     total_cost_df = item_data[['TotalCost']].reset_index()
     
-    # Plot the total basket cost over time using Altair
+# Plot the total basket cost over time using Altair
     chart = alt.Chart(total_cost_df).mark_line(point=True).encode(
-        x='Date:T',
+        x=alt.X('Date:T', axis=alt.Axis(format='%Y', title='Date')),
         y=alt.Y('TotalCost:Q', title='Total Cost', scale=alt.Scale(zero=False), axis=alt.Axis(format='$,.2f')),
-        tooltip=[alt.Tooltip('Date:T', title='Date'), alt.Tooltip('TotalCost:Q', title='Total Cost', format='$,.2f')]
+        tooltip=[alt.Tooltip('Date:T', title='Date', format='%Y-%m'), alt.Tooltip('TotalCost:Q', title='Total Cost', format='$,.2f')]
     ).properties(
         width=800,
         height=400
