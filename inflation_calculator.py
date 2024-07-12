@@ -14,8 +14,8 @@ data = pd.read_csv('June2024_Full_City.csv')
 # Ensure the 'Date' column is parsed as datetime
 data['Date'] = pd.to_datetime(data['Date'], errors='coerce')
 
-def get_may_data(year):
-    """Filter the dataset for May of a specific year and drop rows with NaN values."""
+def get_june_data(year):
+    """Filter the dataset for June of a specific year and drop rows with NaN values."""
     return data[(data['Date'].dt.year == year) & (data['Date'].dt.month == 6)]
 
 def calculate_percentage_change(old_value, new_value):
@@ -26,7 +26,7 @@ def calculate_percentage_change(old_value, new_value):
 
 def calculate_inflation(selected_items, amounts, base_year, comparison_date):
     """Calculate the inflation for the selected items and amounts between two dates."""
-    base_year_data = get_may_data(base_year).select_dtypes(include='number').mean()
+    base_year_data = get_june_data(base_year).select_dtypes(include='number').mean()
     comparison_year_data = data[data['Date'] == comparison_date].select_dtypes(include='number').mean()
     
     inflation_data = {}
@@ -78,7 +78,7 @@ def plot_total_basket_cost(selected_items, amounts):
     # Create a DataFrame for the total cost over time
     total_cost_df = item_data[['TotalCost']].reset_index()
     
-# Plot the total basket cost over time using Altair
+    # Plot the total basket cost over time using Altair
     chart = alt.Chart(total_cost_df).mark_line(point=True).encode(
         x=alt.X('Date:T', axis=alt.Axis(format='%Y', title='Date')),
         y=alt.Y('TotalCost:Q', title='Total Cost', scale=alt.Scale(zero=False), axis=alt.Axis(format='$,.2f')),
@@ -97,27 +97,58 @@ st.write("Developed by Alexander Frei")
 # Select Base Year
 base_year = st.selectbox('Select Base Year', range(2014, 2024))
 
-# Get the latest date in the dataset for comparison (May of the latest year)
+# Get the latest date in the dataset for comparison (June of the latest year)
 latest_date = data['Date'].max()
 latest_year = latest_date.year if latest_date is not pd.NaT else 2024  # Default to 2024 if date parsing fails
 latest_date = f"{latest_year}-06-01"
 
 # Filter items based on the presence of data for the selected base year
-base_year_data = get_may_data(base_year)
+base_year_data = get_june_data(base_year)
 available_items = base_year_data.dropna(axis=1).columns[1:]  # Drop columns with NaN values and exclude the 'Date' column
 
-# List of Items
-selected_items = st.multiselect('Select Items', available_items)
+# Initialize session state for selected items and amounts
+if 'selected_items' not in st.session_state:
+    st.session_state.selected_items = []
+if 'amounts' not in st.session_state:
+    st.session_state.amounts = []
 
-# Input Amounts
+# Display "Average Bundle" and "Redo" buttons in a single row
+col1, col2 = st.columns(2)
+
+
+# This line of code is there To create the example Bundles
+with col1:
+    if st.button("Average Bundle"):
+        st.session_state.selected_items = [
+            "APU0000708111 - Eggs, grade A, large, per doz.",
+            "APU0000709112 - Milk, fresh, whole, fortified, per gal. (3.8 lit)"
+        ]
+        st.session_state.amounts = [3, 1]  # Add 3 eggs and 1 milk
+
+with col2:
+    if st.button('Redo'):
+        st.session_state.selected_items = []
+        st.session_state.amounts = []
+        st.experimental_rerun()
+
+# Display the multi-select box with the selected items, allowing users to add more items
+selected_items = st.multiselect('Select Items', available_items, default=st.session_state.selected_items)
+
+# Input amounts for the selected items
 amounts = []
 for item in selected_items:
-    amount = st.number_input(f'Enter amount for {item}', min_value=0, value=1, step=1)
+    default_amount = st.session_state.amounts[st.session_state.selected_items.index(item)] if item in st.session_state.selected_items else 1
+    amount = st.number_input(f'Enter amount for {item}', min_value=0, value=default_amount, step=1)
     amounts.append(amount)
 
+# Only update session state when the "Calculate Inflation" button is clicked
 if st.button('Calculate Inflation'):
+    # Update session state with selected items and amounts
+    st.session_state.selected_items = selected_items
+    st.session_state.amounts = amounts
+
     # Display the summary
-    inflation_data = calculate_inflation(selected_items, amounts, base_year, latest_date)
+    inflation_data = calculate_inflation(st.session_state.selected_items, st.session_state.amounts, base_year, latest_date)
     
     st.markdown("### Summary")
     st.write(f"**Total June {base_year} Cost:** ${inflation_data['total_base_year_cost']:.2f}")
@@ -127,7 +158,7 @@ if st.button('Calculate Inflation'):
     
     # Plot the total basket cost over time
     st.markdown("### Total Cost of Selected Basket Over Time")
-    plot_total_basket_cost(selected_items, amounts)
+    plot_total_basket_cost(st.session_state.selected_items, st.session_state.amounts)
     
     # Display individual items
     st.write('### Individual Items:')
