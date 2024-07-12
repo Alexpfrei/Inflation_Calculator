@@ -121,9 +121,27 @@ with col1:
     if st.button("Average Bundle"):
         st.session_state.selected_items = [
             "APU0000708111 - Eggs, grade A, large, per doz.",
-            "APU0000709112 - Milk, fresh, whole, fortified, per gal. (3.8 lit)"
+            "APU0000709112 - Milk, fresh, whole, fortified, per gal. (3.8 lit)",
+            "APU0000702111 - Bread, white, pan, per lb. (453.6 gm)",
+            "APU0000FF1101 - Chicken breast, boneless, per lb. (453.6 gm)",
+            "APU0000701312 - Rice, white, long grain, uncooked, per lb. (453.6 gm)",
+            "APU0000712112 - Potatoes, white, per lb. (453.6 gm)",
+            "APU0000703112 - Ground beef, 100% beef, per lb. (453.6 gm)",
+            "APU0000711311 - Oranges, Navel, per lb. (453.6 gm)",
+            "APU0000711211 - Bananas, per lb. (453.6 gm)",
+            "APU0000712311 - Tomatoes, field grown, per lb. (453.6 gm)",
+            "APU000072610 - Electricity per KWH",
+            "APU000072620 - Utility (piped) gas per therm",
+            "APU000074714 - Gasoline, unleaded regular, per gallon/3.785 liters",
+            "APU0000710212 - Cheddar cheese, natural, per lb. (453.6 gm)",
+            "APU0000720111 - Malt beverages, all types, all sizes, any origin, per 16 oz. (473.2 ml)",
+            "APU0000720311 - Wine, red and white table, all sizes, any origin, per 1 liter (33.8 oz)",
+            "APU0000702421 - Cookies, chocolate chip, per lb. (453.6 gm)",
+            "APU0000717311 - Coffee, 100%, ground roast, all sizes, per lb. (453.6 gm)",
+            "APU0000710411 - Ice cream, prepackaged, bulk, regular, per 1/2 gal. (1.9 lit)",
+            "APU0000713111 - Orange juice, frozen concentrate, 12 oz. can, per 16 oz. (473.2 ml)"
         ]
-        st.session_state.amounts = [3, 1]  # Add 3 eggs and 1 milk
+        st.session_state.amounts = [6, 12, 8, 10, 8, 15, 10, 10, 12, 8, 1000, 30, 80, 4, 48, 4, 4, 4, 4, 8]
 
 with col2:
     if st.button('Redo'):
