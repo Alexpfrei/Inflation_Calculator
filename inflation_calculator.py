@@ -390,8 +390,23 @@ if 'selected_items' not in st.session_state:
 if 'amounts' not in st.session_state:
     st.session_state.amounts = []
 
-# New titles with custom CSS
-st.markdown('<h1 style="color:#222944;font-family:\'Gotham\';">Personal Inflation Calculator</h1>', unsafe_allow_html=True)
+st.markdown(
+    """
+    <style>
+    .custom-title {
+        font-family: 'Gotham', sans-serif;  /* Change to desired font */
+        font-size: 40px;                    /* Adjust size as needed */
+        font-weight: bold;                  /* Ensure the text is bold */
+        color: #222944;                     /* Adjust color as needed */
+        line-height: 1.2;                   /* Adjust line-height for spacing */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# Display the title with custom styling
+st.markdown('<h1 class="custom-title">Personal Inflation Calculator</h1>', unsafe_allow_html=True)
 
 with st.container():
     # Text to display
