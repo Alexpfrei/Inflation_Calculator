@@ -417,8 +417,7 @@ with st.container():
     One can also add your own goods or select a predefined basket modeled after the average consumption of a family of four.<br><br>
     Our data stems from the U.S. Bureau of Labor Statistics' Average Price Data series, offering reliable and up-to-date pricing information for a wide range of consumer goods.
     The tool generates detailed item cost breakdowns and visualizes them in a comprehensive graph, which users can download for further analysis.
-    The Personal Inflation Calculator is ideal for researchers, policymakers, and anyone interested in understanding the nuances of inflation and its effect on household expenses.<br><br>
-    Explore the tool and gain valuable insights into your financial planning and research.
+    The Personal Inflation Calculator is ideal for researchers, policymakers, and anyone interested in understanding the nuances of inflation and its effect on household expenses.
     """
     # Add custom CSS for styling the container
     st.markdown(
