@@ -174,7 +174,7 @@ def plot_total_basket_cost(selected_items, amounts):
         tooltip=[alt.Tooltip('TotalCost:Q', title='Total Cost', format='$,.2f')]
     ).properties(
         title=chart_title,
-        width=800,
+        width=700,
         height=400,
         background=chart_background_color
     ).configure_view(
