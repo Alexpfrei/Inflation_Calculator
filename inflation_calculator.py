@@ -414,7 +414,7 @@ with st.container():
     text_to_display = """
     Welcome to the Personal Inflation Calculator, an advanced tool designed to provide insights into how inflation impacts the cost of a selected basket of goods over time.<br><br>
     This application allows users to choose from a variety of commonly purchased items, enter custom amounts, and compare the total cost from a chosen base year to the most recent available data.
-    One can also add your own goods or select a predefined basket modeled after the average consumption of a family of four.<br><br>
+    A user can either choose his own basket of goods and quantities or select from a predefined basket modeled after the average consumption of a family of four.<br><br>
     Our data stems from the U.S. Bureau of Labor Statistics' Average Price Data series, offering reliable and up-to-date pricing information for a wide range of consumer goods.
     The tool generates detailed item cost breakdowns and visualizes them in a comprehensive graph, which users can download for further analysis.
     The Personal Inflation Calculator is ideal for researchers, policymakers, and anyone interested in understanding the nuances of inflation and its effect on household expenses.
