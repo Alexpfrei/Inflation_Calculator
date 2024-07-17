@@ -1,25 +1,9 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
-import streamlit.components.v1 as components
-import matplotlib.pyplot as plt
+
 # Load the dataset
 data = pd.read_csv('test1.csv')
-
-#Drop the series I do not need
-columns_to_drop = [
-    'Gasoline, all types - gallon', 'Gasoline, premium - gallon', 'Fuel oil #2 - gallon',
-    'Chocolate Chip Cookies - lb.', 'All soft drinks, 12 pk - 12 oz.', 'Yogurt - 8 oz.', 
-    'All soft drinks - 2 liters', 'All Ham - lb.', 'Beef Roasts - lb.', 'Steak, round - lb.', 
-    'Wheat Bread - lb.', 'Whole Chicken - lb.', 'All Other Beef - lb.', 'All Other Pork - lb.', 
-    'Ground chuck, 100% beef - lb.', 'All uncooked Ground beef - lb.', 'Beef for stew - lb.', 
-    'Ground beef, extra lean - lb.', 'Beans - lb.', 'Milk, low-fat - gal.', 'Chops, center cut, bone-in - lb.', 
-    'Chicken legs, bone-in - lb.', 'Chops, boneless - lb.', 'Spaghetti and macaroni - lb.', 
-    'Strawberries - 12 oz.', 'Gasoline, midgrade - gallon'
-]
-
-# Drop the unnecessary columns
-data = data.drop(columns=columns_to_drop)
 
 # Ensure the 'Date' column is parsed as datetime
 data['Date'] = pd.to_datetime(data['Date'], format='%m/%d/%y', errors='coerce')
@@ -140,12 +124,9 @@ def calculate_inflation(selected_items, amounts, base_year, comparison_date):
 def generate_citation(selected_items):
     series_ids = [goods_to_series_id[item] for item in selected_items if item in goods_to_series_id]
     series_ids_str = ", ".join(series_ids)
-    #citation = f"""
-    #Source: U.S. Bureau of Labor Statistics, Average Price Data, Series {series_ids_str}, accessed July 15, 2024, 
-    #<a href='https://download.bls.gov/pub/time.series/ap/ap.series' target='_blank' style='color: #222944 !important;'>https://download.bls.gov/pub/time.series/ap/ap.series</a>
-    #"""
     citation = f"""
-    Source: U.S. Bureau of Labor Statistics, Average Price Data, accessed July 15, 2024, https://download.bls.gov/pub/time.series/ap/ap.series 
+    Source: U.S. Bureau of Labor Statistics, Average Price Data, Series {series_ids_str}, accessed July 15, 2024, 
+    <a href='https://download.bls.gov/pub/time.series/ap/ap.series' target='_blank' style='color: #222944 !important;'>https://download.bls.gov/pub/time.series/ap/ap.series</a>
     """
     return citation
 
@@ -228,7 +209,6 @@ def plot_total_basket_cost(selected_items, amounts):
 
     st.altair_chart(chart)
     
-
     # Display the citation with proper styling
     citation = generate_citation(selected_items)
     
@@ -238,100 +218,6 @@ def plot_total_basket_cost(selected_items, amounts):
     </div>
     """, unsafe_allow_html=True)
 
-
-def plot_total_basket_cost_mat(selected_items, amounts):
-    """Plot the total basket cost of selected items over the years using Matplotlib."""
-    # Filter the data for selected items and drop rows with NaN values
-    item_data = data[['Date'] + list(selected_items)].dropna()
-    
-    # Convert all selected item columns to numeric, coerce errors to NaN, then fill NaNs with 0
-    item_data[selected_items] = item_data[selected_items].apply(pd.to_numeric, errors='coerce').fillna(0)
-    
-    # Calculate the total cost of the basket for each month
-    item_data['TotalCost'] = 0
-    for item, amount in zip(selected_items, amounts):
-        item_data['TotalCost'] += item_data[item] * amount
-    
-    # Group by month and sum the total cost
-    item_data = item_data.groupby(item_data['Date'].dt.to_period('M')).sum(numeric_only=True)
-    item_data.index = item_data.index.to_timestamp()
-    
-    # Create a DataFrame for the total cost over time
-    total_cost_df = item_data[['TotalCost']].reset_index()
-
-    # Plot the total basket cost over time using Matplotlib
-    fig, ax = plt.subplots(figsize=(12, 8))  # Increased figure size
-    
-    
-    # Set the background color
-    fig.patch.set_facecolor('#F3F5F8')
-    #ax.set_facecolor('#F3F5F8')
-
-    # Plot the data
-    ax.plot(total_cost_df['Date'], total_cost_df['TotalCost'], color='#0093d0', linewidth=2)  # Blue line
-
-    # Set the title and labels with the specified font properties
-    title_font = {
-        'fontname': 'Gotham',  # Change this to the exact font name you want to use
-        'fontsize': 20,
-        'weight': 'bold',
-        'color': 'black'
-    }
-    ax.set_title('Total Cost of Selected Basket Over Time', pad=20, **title_font)
-    
-    ax.set_xlabel('', fontsize=16, fontweight='bold', color='black', fontfamily='Gotham')
-    ax.set_ylabel('Total Cost', fontsize=16, fontweight='bold', color='black', fontfamily='Gotham')
-
-    # Format the y-axis to display currency
-    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: '${:,.0f}'.format(x)))
-
-
-    # Set the tick label font properties
-    plt.xticks(fontsize=16, fontweight='bold', fontfamily='Gotham', color='gray')
-    plt.yticks(fontsize=16, fontweight='bold', fontfamily='Gotham', color='gray')
-
-    # Set the grid
-    ax.grid(True, color='gray', linestyle='-', linewidth=0.5)
-
-    # Add gray shading for alternating years
-    for year in range(total_cost_df['Date'].dt.year.min(), total_cost_df['Date'].dt.year.max() + 2, 2):
-        ax.axvspan(pd.Timestamp(f'{year}-01-01'), pd.Timestamp(f'{year+1}-01-01'), color='#F6F6F6', alpha=1.0)
-
-    # Add gray shading for the last period beyond the final year
-    ax.axvspan(pd.Timestamp(f'{total_cost_df["Date"].dt.year.max() + 1}-01-01'), pd.Timestamp(f'{total_cost_df["Date"].dt.year.max() + 2}-12-31'), color='#F6F6F6', alpha=1.0)
-
-    # Remove vertical grid lines
-    ax.grid(False, axis='x')
-
-    # Remove the border around the plot
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.spines['bottom'].set_color('none')
-    ax.spines['left'].set_visible(False)
-
-    # Set the x-axis limit to remove the gap before the data starts
-    ax.set_xlim(total_cost_df['Date'].min(), pd.Timestamp(f'{total_cost_df["Date"].dt.year.max() + 1}-01-01'))
-
-    # Get rid of mini ticks
-    ax.tick_params(axis='both', which='both', length=0)
-    
-    # Set the y-axis limit to accommodate the data
-    ax.set_ylim(total_cost_df['TotalCost'].min() * 0.9, total_cost_df['TotalCost'].max() * 1.1)
-
-    #Draw Thick horizontal bottom line
-    ymin = total_cost_df['TotalCost'].min() * 0.9  # Use the same minimum value as in set_ylim
-    ax.axhline(y=ymin, color='gray', linewidth=3, alpha=0.7)
-
-    citation = generate_citation(selected_items)
-    
-    # Add source note at the bottom
-    fig.text(0.1, -0.05, f"{citation}", ha='left', fontsize=10, color='gray')
-    
-    # Adjust layout to make room for the source note
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
-
-    # Display the chart in Streamlit
-    st.pyplot(fig)
 
 ######################################################################################## Custom style portion ########################################################################################
 ######################################################################################################################################################################################################
@@ -452,6 +338,20 @@ def generate_custom_css(button_bg_color, button_font_color, dropdown_bg_color, d
     /* Custom label styling for select boxes */
     .stSelectbox label {{
         color: {label_color} !important;
+        font-family: 'Gotham', sans-serif !important;
+    }}
+
+    /* Styling the highlighted buttons and selected items */
+    .st-ar.st-br.st-bq.st-ed.st-ee.st-af {{
+        background-color: {highlight_color} !important;
+        color: {dropdown_font_color} !important;
+        font-family: 'Gotham', sans-serif !important;
+    }}
+
+    /* Specific styling for the close buttons within selected items */
+    div.st-ak.st-al.st-bd.st-be.st-bf.st-as.st-bg.st-ct.st-ar.st-c4.st-c5.st-bk.st-c7 > span {{
+        background-color: {highlight_color} !important;
+        color: {dropdown_font_color} !important;
         font-family: 'Gotham', sans-serif !important;
     }}
 
@@ -578,11 +478,12 @@ with upper_col1:
             "Cheddar cheese - lb.",
             "Malt beverages - 16 oz.",
             "Wine - 1 liter",
+            "Chocolate Chip Cookies - lb.",
             "Coffee - lb.",
             "Ice cream - 1/2 gal.",
             "Orange juice - 16 oz."
         ]
-        st.session_state.amounts = [6, 12, 8, 10, 8, 15, 10, 10, 12, 8, 1000, 30, 80, 4, 48, 4, 4, 4, 8]
+        st.session_state.amounts = [6, 12, 8, 10, 8, 15, 10, 10, 12, 8, 1000, 30, 80, 4, 48, 4, 4, 4, 4, 8]
 
 with upper_col2:
     calculate_button = st.button('Calculate Inflation')
@@ -631,23 +532,23 @@ if calculate_button:
 
     st.markdown('<h2 style="color:#222944;font-family:\'Gotham\';">Summary</h2>', unsafe_allow_html=True)
     st.markdown(f"""
-    <div style="border: 2px solid #222944; border-radius: 10px; width: 100%; font-family: 'Gotham'; color: #222944;">
-        <table style="width:100%; border-collapse: collapse; border: none;">
-            <tr style="border: none;">
-                <td style="padding: 8px; border: none;"><strong>Total June {base_year} Cost:</strong></td>
-                <td style="padding: 8px; border: none;">${inflation_data['total_base_year_cost']:.2f}</td>
+    <div style="border: 2px solid #222944; border-radius: 10px; padding: 10px; width: 100%; font-family: 'Gotham'; color: #222944;">
+        <table style="width:100%; border-collapse: collapse;">
+            <tr style="border-bottom: 1px solid #222944;">
+                <td style="padding: 8px;"><strong>Total June {base_year} Cost:</strong></td>
+                <td style="padding: 8px;">${inflation_data['total_base_year_cost']:.2f}</td>
             </tr>
-            <tr style="border: none;">
-                <td style="padding: 8px; border: none;"><strong>Total June {latest_year} Cost:</strong></td>
-                <td style="padding: 8px; border: none;">${inflation_data['total_comparison_year_cost']:.2f}</td>
+            <tr style="border-bottom: 1px solid #222944;">
+                <td style="padding: 8px;"><strong>Total June {latest_year} Cost:</strong></td>
+                <td style="padding: 8px;">${inflation_data['total_comparison_year_cost']:.2f}</td>
             </tr>
-            <tr style="border: none;">
-                <td style="padding: 8px; border: none;"><strong>Cost Difference:</strong></td>
-                <td style="padding: 8px; border: none;">${inflation_data['cost_difference']:.2f}</td>
+            <tr style="border-bottom: 1px solid #222944;">
+                <td style="padding: 8px;"><strong>Cost Difference:</strong></td>
+                <td style="padding: 8px;">${inflation_data['cost_difference']:.2f}</td>
             </tr>
-            <tr style="border: none;">
-                <td style="padding: 8px; border: none;"><strong>Percentage Change:</strong></td>
-                <td style="padding: 8px; border: none;">{inflation_data['percentage_change']:.2f}%</td>
+            <tr>
+                <td style="padding: 8px;"><strong>Percentage Change:</strong></td>
+                <td style="padding: 8px;">{inflation_data['percentage_change']:.2f}%</td>
             </tr>
         </table>
     </div>
@@ -655,25 +556,8 @@ if calculate_button:
     st.write("")
     st.write("")
 
+    plot_total_basket_cost(st.session_state.selected_items, st.session_state.amounts)
 
-    plot_total_basket_cost_mat(st.session_state.selected_items, st.session_state.amounts)
-
-    # Share Button
-    twitter_button_html = f"""
-    <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" 
-    data-text="Look at my personal Inflation over time {inflation_data['cost_difference']:.2f}" 
-    data-url="https://inflationcalculator.streamlit.app/"
-    data-show-count="false"
-    data-size="Large" 
-    Tweet
-    </a>
-    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-    <img src="https://www.heritage.org/sites/default/files/styles/card_landscape_l/public/images/2024-07/GettyImages-1431378822.jpg?itok=4W3mMsVJ" alt="Example Plot">
-    """
-    
-    # Display the Button
-    #components.html(twitter_button_html)
-    
     # Display individual items
     st.markdown('<h2 style="color:#222944;font-family:\'Gotham\';">Individual Items:</h2>', unsafe_allow_html=True)
 
